@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>나 여기있어</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f5f5f5; color: #1F2937; }
+    
+    .header { background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%); color: white; padding: 2rem; text-align: center; }
+    .header h1 { font-size: 28px; margin-bottom: 8px; }
+    
+    .container { padding: 1.5rem; padding-bottom: 100px; max-width: 600px; margin: 0 auto; }
+    .section { margin-bottom: 2rem; }
+    .section h2 { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+    
+    .photo-label { display: block; padding: 2rem; border: 2px dashed #667EEA; border-radius: 16px; background: #F3F4F6; color: #667EEA; cursor: pointer; text-align: center; margin-bottom: 12px; font-weight: 600; }
+    .photo-label div { font-size: 44px; margin-bottom: 8px; }
+    #photoInput { display: none; }
+    
+    .input-field { margin-bottom: 12px; }
+    .input-field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+    .input-field input { width: 100%; padding: 12px; border: 1px solid #E5E7EB; border-radius: 10px; font-size: 13px; }
+    
+    .btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 12px; }
+    
+    .tabs { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid #E5E7EB; display: flex; }
+    .tab-btn { flex: 1; padding: 16px; border: none; cursor: pointer; font-size: 12px; font-weight: 600; color: #6B7280; background: white; }
+    .tab-btn.active { background: #667EEA; color: white; }
+    
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .card { background: white; border-radius: 12px; overflow: hidden; border: 1px solid #E5E7EB; position: relative; }
+    .card img { width: 100%; aspect-ratio: 1; object-fit: cover; }
+    .card-emotion { position: absolute; bottom: 8px; right: 8px; font-size: 28px; }
+    .card-info { padding: 10px; font-size: 12px; }
+    .card-info div { margin-bottom: 4px; }
+    .delete-btn { width: 100%; padding: 6px; background: #FEE2E2; color: #DC2626; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; margin-top: 6px; }
+    
+    #photo-preview { margin-bottom: 12px; }
+    #photo-preview img { width: 100%; border-radius: 12px; }
+    
+    .alert { position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%); background: white; padding: 16px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none; z-index: 1000; }
+    
+    .setting-box { padding: 16px; background: #F0F9FF; border-radius: 12px; border: 1px solid #E0F2FE; margin-top: 1rem; }
+    .setting-box label { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+    .setting-box input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; }
+    
+    .color-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+    .color-btn { padding: 12px; border: 2px solid #DDD; border-radius: 10px; cursor: pointer; font-size: 40px; }
+    .color-btn.selected { border: 3px solid #0066FF; }
+    
+    #first-screen { background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; color: white; }
+    #first-screen.hidden { display: none; }
+  </style>
+</head>
+<body>
+  <!-- 첫 화면 -->
+  <div id="first-screen">
+    <div style="text-align: center;">
+      <div style="font-size: 100px; margin-bottom: 1rem; animation: bounce 2s infinite;" id="first-car">🚗</div>
+      <div style="font-size: 32px; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 1px;">나 여기있어</div>
+      <p style="font-size: 14px; opacity: 0.9; margin-top: 1rem; line-height: 1.6;">당신의 파킹 파트너<br>차를 주차하고 위치를 기록해주세요</p>
+    </div>
+    <button onclick="startApp()" style="margin-top: 3rem; padding: 16px 48px; background: white; color: #667EEA; border: none; border-radius: 30px; font-size: 16px; font-weight: 700; cursor: pointer;">시작하기 🚗</button>
+  </div>
+
+  <!-- 메인 앱 -->
+  <div id="main-app" class="hidden">
+    <div class="header">
+      <h1>🚗 나 여기있어</h1>
+      <p style="font-size: 13px; opacity: 0.9;">이곳에서 당신을 기다리고 있어요</p>
+    </div>
+    
+    <div class="container">
+      <!-- 탭 1: 위치 저장 -->
+      <div id="tab1" class="tab-content active">
+        <div class="section">
+          <h2>1단계 · 사진 촬영</h2>
+          <label class="photo-label">
+            <div>📸</div>
+            여기를 눌러서 사진을 촬영해주세요
+            <input type="file" id="photoInput" accept="image/*" capture="environment">
+          </label>
+          <div id="photo-preview"></div>
+        </div>
+        
+        <div class="section">
+          <h2>2단계 · 위치 정보</h2>
+          
+          <div class="input-field">
+            <label>📍 장소 (선택)</label>
+            <input type="text" id="location" placeholder="예: 판교 현대백화점">
+          </div>
+          
+          <div class="input-field">
+            <label>🏷️ 주차 구역 (선택)</label>
+            <input type="text" id="zone" placeholder="예: B4 E3">
+          </div>
+          
+          <div class="input-field">
+            <label>📝 추가 설명 (선택)</label>
+            <input type="text" id="memo" placeholder="예: 5층 주차장">
+          </div>
+          
+          <button class="btn" onclick="saveParking()">위치 저장 🚗</button>
+        </div>
+      </div>
+      
+      <!-- 탭 2: 기록 -->
+      <div id="tab2" class="tab-content">
+        <h2 style="margin-bottom: 16px;">📋 기록</h2>
+        <div class="grid" id="records-grid"></div>
+      </div>
+      
+      <!-- 탭 3: 설정 -->
+      <div id="tab3" class="tab-content">
+        <div class="section">
+          <h2>⚙️ 설정</h2>
+          <div class="input-field">
+            <label>🚗 자동차 이름</label>
+            <input type="text" id="carName" value="붕붕이" onchange="saveName()">
+          </div>
+          
+          <div style="margin-top: 2rem;">
+            <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 12px;">🎨 자동차 색상</h3>
+            <div class="color-grid" id="color-grid"></div>
+          </div>
+          
+          <div class="setting-box" style="margin-top: 2rem;">
+            <label>
+              <input type="checkbox" id="notif-toggle" onchange="toggleNotif()">
+              <div>
+                <div style="font-weight: 600; font-size: 14px;">🔔 1시간마다 알림</div>
+                <div style="font-size: 12px; color: #6B7280; margin-top: 4px;">주차한 위치와 경과 시간을 알려드립니다</div>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab(0)">📸 위치 저장</button>
+      <button class="tab-btn" onclick="switchTab(1)">📋 기록</button>
+      <button class="tab-btn" onclick="switchTab(2)">⚙️ 설정</button>
+    </div>
+  </div>
+  
+  <div class="alert" id="alert"></div>
+
+  <style>
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+    .hidden { display: none !important; }
+  </style>
+
+  <script>
+    let records = [];
+    let photoData = null;
+    const colors = ['#FF6B6B', '#FFA500', '#FFD700', '#00D084', '#0084FF', '#9D4EDD'];
+
+    function init() {
+      loadRecords();
+      loadSettings();
+      renderColorGrid();
+      updateFirstCarColor();
+      document.getElementById('photoInput').addEventListener('change', handlePhoto);
+      requestNotif();
+      setInterval(checkNotif, 60000);
+    }
+
+    function updateFirstCarColor() {
+      const carColor = localStorage.getItem('car-color') || colors[0];
+      document.getElementById('first-car').innerHTML = getCarSVG(carColor, 100);
+    }
+
+    function startApp() {
+      document.getElementById('first-screen').classList.add('hidden');
+      document.getElementById('main-app').classList.remove('hidden');
+      localStorage.setItem('first-visit', 'false');
+    }
+
+    function handlePhoto(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          photoData = evt.target.result;
+          document.getElementById('photo-preview').innerHTML = '<img src="' + photoData + '">';
+          showMsg('✅ 사진이 저장되었어요', 2000);
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function saveParking() {
+      if (!photoData) {
+        showMsg('❌ 사진을 먼저 촬영해주세요!', 3000);
+        return;
+      }
+      
+      records.unshift({
+        id: Date.now(),
+        photo: photoData,
+        location: document.getElementById('location').value || '위치 미지정',
+        zone: document.getElementById('zone').value,
+        memo: document.getElementById('memo').value,
+        time: new Date().toISOString()
+      });
+      
+      localStorage.setItem('parking-records', JSON.stringify(records));
+      photoData = null;
+      document.getElementById('photo-preview').innerHTML = '';
+      document.getElementById('location').value = '';
+      document.getElementById('zone').value = '';
+      document.getElementById('memo').value = '';
+      showMsg('✅ 주차 위치가 저장되었어요!', 2000);
+    }
+
+    function loadRecords() {
+      const saved = localStorage.getItem('parking-records');
+      records = saved ? JSON.parse(saved) : [];
+      renderRecords();
+    }
+
+    function getEmotion(timeStr) {
+      const diff = Math.floor((Date.now() - new Date(timeStr)) / 60000);
+      const hours = Math.floor(diff / 60);
+      if (hours < 2) return '😊';
+      if (hours < 4) return '😢';
+      return '😴';
+    }
+
+    function renderRecords() {
+      const grid = document.getElementById('records-grid');
+      const carColor = localStorage.getItem('car-color') || colors[0];
+      grid.innerHTML = records.map(r => {
+        const diff = Math.floor((Date.now() - new Date(r.time)) / 60000);
+        let timeStr = diff < 1 ? '방금 전' : diff < 60 ? diff + '분 전' : Math.floor(diff / 60) + '시간 전';
+        const emotion = getEmotion(r.time);
+        return '<div class="card"><img src="' + r.photo + '"><div class="card-emotion" style="position:absolute;bottom:8px;right:8px;font-size:28px;">' + emotion + '</div><div style="position:absolute;bottom:8px;left:8px;font-size:24px;">' + getCarSVG(carColor, 32) + '</div><div class="card-info"><div style="font-weight:600;">' + r.location + '</div><div style="color:#6B7280;">' + r.zone + '</div><div style="color:#6B7280;font-size:11px;">' + timeStr + '</div><button class="delete-btn" onclick="deleteRecord(' + r.id + ')">삭제</button></div></div>';
+      }).join('');
+    }
+
+    function deleteRecord(id) {
+      records = records.filter(r => r.id !== id);
+      localStorage.setItem('parking-records', JSON.stringify(records));
+      renderRecords();
+      showMsg('✅ 삭제되었어요', 2000);
+    }
+
+    function renderColorGrid() {
+      const grid = document.getElementById('color-grid');
+      const current = localStorage.getItem('car-color') || colors[0];
+      grid.innerHTML = colors.map(c => '<button class="color-btn ' + (c === current ? 'selected' : '') + '" onclick="setColor(\'' + c + '\')">' + getCarSVG(c, 40) + '</button>').join('');
+    }
+
+    function getCarSVG(color, size) {
+      return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto;"><ellipse cx="50" cy="60" rx="35" ry="15" fill="' + color + '" opacity="0.3"/><rect x="20" y="45" width="60" height="25" rx="8" fill="' + color + '"/><rect x="30" y="35" width="40" height="15" rx="6" fill="' + color + '"/><circle cx="30" cy="70" r="8" fill="#333"/><circle cx="70" cy="70" r="8" fill="#333"/><circle cx="32" cy="46" r="6" fill="white"/><circle cx="48" cy="46" r="6" fill="white"/><circle cx="32" cy="46" r="3.5" fill="#000"/><circle cx="48" cy="46" r="3.5" fill="#000"/><circle cx="33.5" cy="44" r="1.5" fill="white"/><circle cx="49.5" cy="44" r="1.5" fill="white"/><path d="M 38 54 Q 42 56 46 54" stroke="#333" stroke-width="1.5" fill="none"/></svg>';
+    }
+
+    function setColor(color) {
+      localStorage.setItem('car-color', color);
+      renderColorGrid();
+      updateFirstCarColor();
+      showMsg('✅ 색상이 저장되었어요!', 2000);
+    }
+
+    function switchTab(n) {
+      document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(e => e.classList.remove('active'));
+      document.getElementById('tab' + (n + 1)).classList.add('active');
+      document.querySelectorAll('.tab-btn')[n].classList.add('active');
+      if (n === 1) renderRecords();
+    }
+
+    function saveName() {
+      localStorage.setItem('car-name', document.getElementById('carName').value);
+    }
+
+    function loadSettings() {
+      const name = localStorage.getItem('car-name');
+      if (name) document.getElementById('carName').value = name;
+      document.getElementById('notif-toggle').checked = localStorage.getItem('notif-enabled') !== 'false';
+      
+      // 첫 방문 확인 - 'first-visit' 상태 확인
+      const firstVisit = localStorage.getItem('first-visit') !== 'false';
+      if (!firstVisit) {
+        document.getElementById('first-screen').classList.add('hidden');
+        document.getElementById('main-app').classList.remove('hidden');
+      }
+    }
+
+    function toggleNotif() {
+      const enabled = document.getElementById('notif-toggle').checked;
+      localStorage.setItem('notif-enabled', enabled);
+      if (enabled) {
+        requestNotif();
+        showMsg('✅ 푸시 알림이 활성화되었어요!', 2000);
+      } else {
+        showMsg('✅ 푸시 알림이 비활성화되었어요!', 2000);
+      }
+    }
+
+    function requestNotif() {
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+    }
+
+    function checkNotif() {
+      if (!('Notification' in window) || Notification.permission !== 'granted') return;
+      if (localStorage.getItem('notif-enabled') === 'false' || records.length === 0) return;
+      
+      const lastTime = localStorage.getItem('last-notif');
+      const now = Date.now();
+      if (lastTime && (now - parseInt(lastTime)) < 3600000) return;
+      
+      const rec = records[0];
+      const mins = Math.floor((now - new Date(rec.time)) / 60000);
+      if (mins >= 60) {
+        const hours = Math.floor(mins / 60);
+        const loc = rec.location + (rec.zone ? ' ' + rec.zone : '');
+        new Notification('🚗 나 여기있어', {
+          body: hours + '시간 전에 주차한 위치입니다.\n📍 ' + loc + '\n\n저는 안전하게 기다리고 있습니다!'
+        });
+        localStorage.setItem('last-notif', now);
+      }
+    }
+
+    function showMsg(msg, ms) {
+      const alert = document.getElementById('alert');
+      alert.textContent = msg;
+      alert.style.display = 'block';
+      setTimeout(() => alert.style.display = 'none', ms);
+    }
+
+    init();
+  </script>
+</body>
+</html>
